@@ -113,13 +113,9 @@ resource "aws_lb_target_group" "default" {
 }
 
 locals {
-  http_default_arn  = var.redirect_http_to_https ? null : aws_lb_target_group.default.arn
-  http_default_type = var.redirect_http_to_https ? "redirect" : "forward"
-  http_default_redirect = var.redirect_http_to_https ? {
-    port        = "443"
-    protocol    = "HTTPS"
-    status_code = "HTTP_301"
-  } : null
+  http_default_arn      = var.redirect_http_to_https ? null : aws_lb_target_group.default.arn
+  http_default_type     = var.redirect_http_to_https ? "redirect" : "forward"
+  http_default_redirect = var.redirect_http_to_https ? ["HTTPS"] : []
 }
 
 resource "aws_lb_listener" "http" {
@@ -131,7 +127,16 @@ resource "aws_lb_listener" "http" {
   default_action {
     target_group_arn = local.http_default_arn
     type             = local.http_default_type
-    redirect         = local.http_default_redirect
+
+    dynamic "redirect" {
+      for_each = local.http_default_redirect
+
+      content {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
   }
 }
 
