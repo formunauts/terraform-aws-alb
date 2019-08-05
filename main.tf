@@ -91,7 +91,7 @@ module "default_target_group_label" {
 }
 
 resource "aws_lb_target_group" "default" {
-  name                 = module.default_target_group_label.id
+  name                 = substr(module.default_target_group_label.id, 0, 32)
   port                 = var.target_group_port
   protocol             = "HTTP"
   vpc_id               = var.vpc_id
